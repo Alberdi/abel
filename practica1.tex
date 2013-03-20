@@ -1,0 +1,182 @@
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}         % Separación de palabras
+\usepackage[ansinew]{inputenc}      % Permite poner acentos directamente
+\usepackage{epsfig}                 % Inclusión de gráficos EPS
+\usepackage{url}                    % Pretty-print de urls
+\usepackage{ams}                    % Fuentes matemáticas
+\usepackage{amsmath}
+\usepackage{cwpuzzle}               % Generación de puzzles
+\usepackage{geometry}               % Márgenes del documento
+\usepackage{multicol}               % Escribir texto en múltiples columnas de tablas
+\usepackage{fancyhdr}               % Formatos de cabeceras y pies de páginas
+\usepackage{caption}                % Formato de "caption"
+
+
+\geometry{a4paper}                  % Tamaño y márgenes del documento
+\geometry{left=2.5cm,top=2.5cm}
+\geometry{bottom=2.5cm,right=2.5cm}
+\geometry{driver=dvips,pdftex}
+                                    % Estilo de los pies de figura/tabla
+\captionsetup{format=hang,font=small,labelfont=bf}
+
+\pagestyle{fancy}                   % Formatos de cabecera izquierda y derecha
+\fancyhead[LE,LO]{\small Instrucciones para preparar la memoria de
+prácticas} \fancyhead[RE,RO]{\small \textit{Inteligencia
+Artificial}}
+\fancyfoot[CO,CE]{\thepage}         % Formato de pie de página
+
+\renewenvironment{abstract}{\list{}{\setlength{\leftmargin}{1cm}}{\setlength{
+\rightmargin}{1cm}}\relax\item\ignorespaces\fontsize{12}{15}\selectfont {\bf \abstractname. }}{\unskip\endlist}%
+
+\begin{document}
+
+
+% Definiciones generales
+
+\setlength\arraycolsep{8pt}         % Separación entre columnas en el entorno array
+\setlength\tabcolsep{8pt}           % Separación entre columnas en el entorno tabular
+\renewcommand{\arraystretch}{1.5}   % Separación vertical entre filas consecutivas
+\parskip=0.3em                      % Espacio entre párrafos
+\def\tablename{Tabla}               % Cambiamos el "castellano" Cuadro a Tabla
+
+
+%-------------------PORTADA DE LA MEMORIA-------------------%
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+\rule{\textwidth}{1pt} \vspace{2pt}
+\begin{center}
+\Huge
+\begin{tabular}{@{}c}
+Resolución del problema\\
+de búsqueda de Abdel\\
+{\Large Memoria de prácticas de Inteligencia artificial}\\
+{\Large Primera entrega}\\
+\end{tabular}
+\end{center}
+\rule{\textwidth}{1pt}
+
+\vspace{2cm} \begin{center}\today\end{center}
+
+\vfill
+
+\begin{flushright}
+\large
+\begin{tabular}{@{}l}
+{\Large\upshape\bfseries Autores:}\\[8pt]
+Marcelino Alberdi Pereira \itshape{marcelino.alberdi@udc.es}\\[5pt]
+Jose Eulogio Cribeiro Aneiros \itshape{jose.cribeiro@udc.es}\\[10pt]
+{\Large\upshape\bfseries Directorio de entrega:} jose.cribeiro\\[8pt]
+\end{tabular}
+\end{flushright}
+
+
+%-------------------RESUMEN DE LA MEMORIA-------------------%
+\newpage
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+
+\begin{abstract}
+Este problema de Abdel consiste en localizar el camino con menor riesgo para llegar de un inicio a un destino prefijado. Para ello se tienen en cuenta los valores de dificultad de cada una de las casillas dentro del mapa hasta obtener un camino que una ambos puntos a través de una formulación como problema de búsqueda. Se implementan distintos algoritmos de búsqueda ciega e informada, se evalúan y se extraen las conclusiones pertinentes.
+\end{abstract}
+
+
+%-------------------INDICE DE LA MEMORIA-------------------%
+\newpage
+
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+\tableofcontents
+
+
+%---------------------- LA MEMORIA------------------------%
+\newpage
+
+\section{Definición de conceptos}
+\subsection{Estado inicial}
+El estado inicial es aquel del que partimos al hacer las búsquedas, aunque cualquier otro estado alcanzado diferente del de meta puede ser considerado como un nuevo estado inicial del problema\cite{libroia}.
+Aplicado a este problema, se trata de la única posición en el mapa que ocupa la casa de Abdel, que también tiene asociado un coste de dificultad. Desde ese punto será del que partirá hacia el hogar de su amada.
+
+\subsection{Estado meta}
+Un estado meta es aquel estado que cumple los requisitos suficientes para ser considerado una solución aceptable de nuestro problema\cite{libroia}.
+En este caso, el estado meta también es único y se corresponde con la casa de Gertrudis, que también tiene asociado un coste de dificultad al igual que cualquier otra casilla del terreno. Este será el punto en el que Abdel culminará su aventura.
+
+\subsection{Operadores y restricciones}
+Los operadores son las acciones que son aplicables a un conjunto de estados para obtener un nuevo estado. Las restricciones pueden limitar la aplicabilidad de alguno de los operadores y están determinadas por el estado actual.
+En el problema que tratamos, los operadores son girar en cualquiera de las dos direcciones y avanzar en el sentido que Abdel está mirando. La única restricción aplicable es que debe mantenerse dentro del mapa, ya que el exterior se considera terreno desconocido y, por lo tanto, hostil.
+
+\subsection{Prueba de meta}
+La prueba de meta permite decidir si alguno de los nuevos estados generados se trata de un estado meta\cite{libroia}.
+Es sencillo en nuestro caso porque solo hay que asegurarse que la casilla contenga la casa de Gertrudis.
+
+\subsection{Función de coste}
+La función de coste asigna un coste numérico a cada camino, que normalmente se corresponde con la suma de costes de los estados recorridos hasta llegar al actual.
+Aplicado al mundo de Abdel, tomaremos como coste del camino al menor de los números obtenidos para llegar a un determinado estado teniendo en cuenta las dificultades atravesadas y el número de giros realizados. Es decir, si se llega a un mismo estado por varios caminos diferentes, el valor de la función de coste será el mínimo de ellos.
+
+\section{Elección del método de búsqueda ciega}
+Aunque el algoritmo en anchura tiene mayores requisitos teóricos de memoria por su explosión combinativa, nos asegura que se obtiene una solución (es decir, es completo) aunque esta puede no ser la mejor a la hora de sortear los obstáculos (no es óptimo). En contraposición, el algoritmo de búsqueda en profundidad ya no nos garantiza el encontrar una solución al problema (no es completo) ya que puede entrar en un bucle; además, aunque ahorrásemos en memoria, en el caso de encontrar una solución tampoco tendría que ser óptima. A mayores, sabemos que Abdel no tiraría por la borda todo su trabajo con una implementación que no le garantizase llegar a los brazos de Gertrudis.\\
+Por estos motivos consideraremos, a partir de ahora, el método de búsqueda en anchura como el mejor método de búsqueda ciega aplicado a este problema.
+
+\section{Función heurística}
+Las funciones heurísticas son funciones de carácter numérico, computables eficientemente, que incorporan conocimiento específico del problema para estimar el coste de alcanzar una meta desde un estado dado. La idea es que la función heurística nos guíe en la búsqueda hacia la solución, aunque desde un punto de vista formal el único requisito al que está sometida es que valga 0 en los estados meta\cite{libroia}.\\
+
+Para este problema proponemos la distancia Chebyshev\cite{wiki-cheb} y la resta de distancias.
+
+\subsection{Distancia Chebyshev}
+La distancia Chebyshev se define como la mayor diferencia entre ambas coordenadas espaciales. Por tanto, la expresión matemática de dicha distancia es:
+\begin{center}
+$D_{\rm Chebyshev} = \max \left ( \left | x_m - x \right | , \left | y_m - y \right | \right ) ,$
+\end{center}
+donde $x_m$ e $y_m$ representan las coordenadas del nodo meta.\\
+
+En ningún caso sobreestima el coste real porque, tanto en el caso de giros de 90º como en el de 45º, no es posible que la distancia real sea mayor que la proporcionada por esta fórmula. En el caso más extremo, Abdel podría alcanzar la meta en línea recta simplemente avanzando por terreno sin dificultad, por lo que los valores del camino real y función de Chebyshev coinciden; en cualquier otro caso, se requiere al menos un giro a mayores, con su correspondiente pérdida de tiempo, y el coste real sería mayor que el de la función.\\
+
+A pesar de esto, la distancia Chebyshev tomada como heurística daría lugar a la aparición de mínimos locales, ya que siempre intentará guiar la búsqueda acercándose lo máximo al objetivo en el sentido espacial del término. Esto puede causar que no se siga el camino óptimo por atravesar una zona de altas dificultades en lugar de intentar evitarlas. Aún así, dado que la heurística es admisible, A* acabará encontrando el camino óptimo hacia la meta aunque no sea su primera opción.\\
+
+Una función heurística monótona es aquella que para todos los estados $n_i$ y $n_j$ se cumple que:
+\begin{center}
+$h(n_i) - h(n_j) \leq coste(n_i, n_j) ,$
+\end{center}
+donde $coste(n_i, n_j)$ es el coste en movimientos en ir del estado $n_i$ al estado $n_j$. Aplicado a esta heurística, podemos afirmar que es monótona porque es sinónimo de que sea admisible entre dos puntos cualquiera; y dado que el valor de la distancia no depende de si el segundo estado considerado es la meta o no, podemos concluir por el punto anterior que también es monótona.
+
+\subsection{Resta de distancias}
+Otra heurística que emplearemos como caso de estudio es la resta de la diferencia de distancias:
+
+\begin{center}
+$D_{\rm Resta} = ||(x_m - x)| - |(y_m - y)|| ,$
+\end{center}
+donde $x_m$ e $y_m$ representan las coordenadas del nodo meta.\\
+
+Tampoco sobreestima en ningún caso el coste real porque el valor obtenido es siempre menor que la distancia Chebyshev, ya que realmente lo que hace es restarle a esta el valor de la diagonal hasta que una de las coordenadas coincida con la de la meta. Por tanto, siempre tiene unos valores iguales o menores que Chebyshev, de lo que se deriva que, como esta es admisible, la resta de la diferencia de distancias también lo es.\\
+
+Con el mismo razonamiento podemos concluir que también es monótona y que provoca la aparición de mínimos locales.
+
+\section{Otros supuestos}
+\subsection{Posiciones sin coste}
+Consideremos la posibilidad de que el mapa pudiese contener posiciones sin coste (con ceros). Para la búsqueda ciega en anchura no cambiaría nada, ya que seguiría obteniendo una solución que no tiene porque ser la óptima, dado que en ningún momento usaba los valores de dificultad para calcular su ruta.\\
+
+A* seguiría siendo completo, pero podría darse el caso de que no fuese óptimo. Eso depende de si los nuevos cambios al problema afectan a la sobreestimación de la heurística empleada. En el caso de la distancia Chebyshev, comenzaría a dar valores más altos en el que caso que, por ejemplo, Abdel pudiese ir en línea recta hasta la meta con algún cero en su camino. Considerando únicamente las posiciones espaciales del estado inicial y el final no es posible adaptar la heurística, ya que podría darse el caso de tener la meta muy alejada en el espacio pero que se pudiese ir casi instantáneamente a través de casillas de coste cero. La única solución posible sería calcular previamente el coste asociado a cada casilla dependiendo de la dificultad del terreno y luego aplicar esos valores como resultado devuelto por la función heurística.\\
+
+La heurística de la resta de distancias sigue un razonamiento similar para obtener el mismo resultado de inadaptación.
+
+\subsection{Aparición de muros}
+Al igual que en el apartado anterior de posiciones sin coste, la aparición de muros que bloqueen algunas casillas como inatravesables, tampoco afecta al funcionamiento de la búsqueda en anchura; ya que se limitaría a seguir explorando el espacio de búsqueda hasta alcanzar una solución si existe, que seguirá sin tener porque ser la óptima. Si no existiese el algoritmo se quedaría estancado y nunca llegaría a la misma.\\
+
+En cuanto al algoritmo de A* con las heurísticas propuestas, podría verse afectado su rendimiento porque es posible que el guiado no ayude a encontrar directamente la solución óptima; lo cual no quiere decir que no se alcance en un determinado momento. En el caso de que los muros bloqueen la solución, el algoritmo terminará sin haberla encontrado. Por lo tanto, ambas heurísticas seguirían siendo admisibles sin ser modificadas.
+
+\subsection{Giros sin coste}
+
+Se quiere llevar a cabo una simulación más realista todavía en la que los giros no tengan ningún tipo de coste asociado, aunque interesa dar el número menor de giros posibles. Debido a esta segunda condición, es necesario llevar la cuenta de cuantos giros se llevan dados. Para ello se puede modificar la función de coste de manera que, en lugar de tener los giros un coste de una unidad, tengan un coste $\alpha$ suficientemente pequeño para que no afecte al resultado del coste más allá que para diferenciar las soluciones; por ejemplo del orden de $10^{10}$.
+En este caso no habría que reescribir ninguna de las heurísticas porque estas ya no tenían en cuenta el conte de los giros y siguen siendo admisibles.
+
+
+\begin{thebibliography}{1}
+\bibitem{libroia}
+Vicente Moret Bonillo et al.
+\newblock {\em Fundamentos de Inteligencia Artificial. 2ª Edición.}
+\newblock Capítulo 2, Resolución de problemas, pp. 22,23,43
+
+\bibitem{wiki-cheb}
+Wikipedia, The Free Encyclopedia,
+\newblock Chebyshev distance
+\newblock \texttt{http://en.wikipedia.org/wiki/Chebyshev\_distance}
+
+\end{thebibliography}
+
+\end{document}

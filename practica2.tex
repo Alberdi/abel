@@ -1,0 +1,438 @@
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}         % Separación de palabras
+\usepackage[ansinew]{inputenc}      % Permite poner acentos directamente
+\usepackage{epsfig}                 % Inclusión de gráficos EPS
+\usepackage{url}                    % Pretty-print de urls
+\usepackage{ams}                    % Fuentes matemáticas
+\usepackage{amsmath}
+\usepackage{cwpuzzle}               % Generación de puzzles
+\usepackage{geometry}               % Márgenes del documento
+\usepackage{multicol}               % Escribir texto en múltiples columnas de tablas
+\usepackage{fancyhdr}               % Formatos de cabeceras y pies de páginas
+\usepackage{caption}                % Formato de "caption"
+
+
+\geometry{a4paper}                  % Tamaño y márgenes del documento
+\geometry{left=2.5cm,top=2.5cm}
+\geometry{bottom=2.5cm,right=2.5cm}
+\geometry{driver=dvips,pdftex}
+                                    % Estilo de los pies de figura/tabla
+\captionsetup{format=hang,font=small,labelfont=bf}
+
+\pagestyle{fancy}                   % Formatos de cabecera izquierda y derecha
+\fancyhead[LE,LO]{\small Segunda entrega de la memoria de prácticas} \fancyhead[RE,RO]{\small \textit{Inteligencia
+Artificial}}
+\fancyfoot[CO,CE]{\thepage}         % Formato de pie de página
+
+\renewenvironment{abstract}{\list{}{\setlength{\leftmargin}{1cm}}{\setlength{
+\rightmargin}{1cm}}\relax\item\ignorespaces\fontsize{12}{15}\selectfont {\bf \abstractname. }}{\unskip\endlist}%
+
+\begin{document}
+
+
+% Definiciones generales
+
+\setlength\arraycolsep{8pt}         % Separación entre columnas en el entorno array
+\setlength\tabcolsep{8pt}           % Separación entre columnas en el entorno tabular
+\renewcommand{\arraystretch}{1.5}   % Separación vertical entre filas consecutivas
+\parskip=0.3em                      % Espacio entre párrafos
+\def\tablename{Tabla}               % Cambiamos el "castellano" Cuadro a Tabla
+
+
+%-------------------PORTADA DE LA MEMORIA-------------------%
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+\rule{\textwidth}{1pt} \vspace{2pt}
+\begin{center}
+\Huge
+\begin{tabular}{@{}c}
+Resolución del problema\\
+de búsqueda de Abdel\\
+{\Large Memoria de prácticas de Inteligencia artificial}\\
+{\Large Segunda entrega}\\
+\end{tabular}
+\end{center}
+\rule{\textwidth}{1pt}
+
+\vspace{2cm} \begin{center}\today\end{center}
+
+\vfill
+
+\begin{flushright}
+\large
+\begin{tabular}{@{}l}
+{\Large\upshape\bfseries Autores:}\\[8pt]
+Marcelino Alberdi Pereira \itshape{marcelino.alberdi@udc.es}\\[5pt]
+Jose Eulogio Cribeiro Aneiros \itshape{jose.cribeiro@udc.es}\\[10pt]
+{\Large\upshape\bfseries Directorio de entrega:} marcelino.alberdi\\[8pt]
+\end{tabular}
+\end{flushright}
+
+
+%-------------------RESUMEN DE LA MEMORIA-------------------%
+\newpage
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+
+\begin{abstract}
+En esta segunda entrega nos centraremos en la implementación del problema de Abdel. Realizada en Python con una funcional interfaz en TK, nos ayudará a comprender a través de diversos ejemplos el funcionamiento de los algoritmos definidos teóricamente en la primera parte de la práctica. Incluye tanto ejemplos de las trazas como explicaciones de las diversas ejecuciones.
+\end{abstract}
+
+
+%-------------------INDICE DE LA MEMORIA-------------------%
+\newpage
+
+\thispagestyle{empty}               % Página sin cabeceras ni pies
+\tableofcontents
+
+
+%---------------------- LA MEMORIA------------------------%
+\newpage
+
+\section{Ejemplos de ejecución}
+A continuación mostramos una ejecución del algoritmo con ambos algoritmos: anchura y A* con la heurística de Chebyshev descrita en la primera parte de la práctica. Elegiremos expresamente un ejemplo fácil en el que Abdel debe ir desde la esquina 0,0 a la 1,1 en un mapa de 2x2 sin dificultades añadidas empleando giros de 90º. A mayores, comenzará mirando hacia el este para ahorrarle un paso.
+
+\subsection{Ejecución del método en anchura}
+{\scriptsize
+\begin{verbatim}
+PASO 1
+Nivel de exploración:
+[((0, 0),2)]
+PASO 2
+Nivel de exploración:
+[((0, 0),0), ((0, 0),4), ((0, 1),2)]
+PASO 3
+Nivel de exploración:
+[((0, 0),4), ((0, 1),2), ((0, 0),6)]
+PASO 4
+Nivel de exploración:
+[((0, 1),2), ((0, 0),6), ((1, 0),4)]
+PASO 5
+Nivel de exploración:
+[((0, 0),6), ((1, 0),4), ((0, 1),0), ((0, 1),4)]
+PASO 6
+Nivel de exploración:
+[((1, 0),4), ((0, 1),0), ((0, 1),4)]
+PASO 7
+Nivel de exploración:
+[((0, 1),0), ((0, 1),4), ((1, 0),2), ((1, 0),6)]
+PASO 8
+Nivel de exploración:
+[((0, 1),4), ((1, 0),2), ((1, 0),6), ((0, 1),6)]
+PASO 9
+Nivel de exploración:
+[((1, 0),2), ((1, 0),6), ((0, 1),6), ((1, 1),4)]
+PASO 10
+Nivel de exploración:
+[((1, 0),6), ((0, 1),6), ((1, 1),4), ((1, 0),0), ((1, 1),2)]
+PASO 11
+Nivel de exploración:
+[((0, 1),6), ((1, 1),4), ((1, 0),0), ((1, 1),2)]
+PASO 12
+Nivel de exploración:
+[((1, 1),4), ((1, 0),0), ((1, 1),2)]
+\end{verbatim}
+}
+
+Los estados, en este caso y los siguientes, vienen definidos por una doble tupla de la forma ((X,Y),Z), donde X es la posición en la dimensión horizontal, Y es la posición en la vertical y Z determina hacia donde está mirando Abdel (0=norte, 2=este, 4=sur, 6=oeste; mientras que los números impares sirven para los casos de 45º).
+
+\subsection{Ejemplo del método A*}
+{\scriptsize
+\begin{verbatim}
+PASO 1
+Estados candidatos para continuar:
+[(((0, 0),0), 1, 1), (((0, 0),4), 1, 1), (((0, 1),2), 1, 1), (((0, 0),2), 0, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 0),2), 0, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1)]
+Nuevos descendientes generados:
+[(((0, 0),0), 1, 1), (((0, 0),4), 1, 1), (((0, 1),2), 1, 1)]
+PASO 2
+Estados candidatos para continuar:
+[(((0, 0),0), 1, 1), (((0, 0),4), 1, 1), (((0, 1),0), 2, 1), (((0, 1),4), 2, 1), (((0, 1),2), 1, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 1),2), 1, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 1),2), 1, 1)]
+Nuevos descendientes generados:
+[(((0, 1),0), 2, 1), (((0, 1),4), 2, 1)]
+PASO 3
+Estados candidatos para continuar:
+[(((0, 0),0), 1, 1), (((0, 1),0), 2, 1), (((0, 1),4), 2, 1), (((0, 0),6), 2, 1), (((1, 0),4), 2, 1), (((0, 0),4), 1, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 0),4), 1, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 0),4), 1, 1)]
+Nuevos descendientes generados:
+[(((0, 0),6), 2, 1), (((1, 0),4), 2, 1)]
+PASO 4
+Estados candidatos para continuar:
+[(((0, 1),0), 2, 1), (((0, 1),4), 2, 1), (((0, 0),6), 2, 1), (((1, 0),4), 2, 1), (((0, 0),0), 1, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 0),0), 1, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 0),0), 1, 1)]
+Nuevos descendientes generados:
+[]
+PASO 5
+Estados candidatos para continuar:
+[(((0, 1),4), 2, 1), (((0, 0),6), 2, 1), (((1, 0),4), 2, 1), (((0, 1),6), 3, 1), (((0, 1),0), 2, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 1),0), 2, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 1),2), 1, 1), (((0, 1),0), 2, 1)]
+Nuevos descendientes generados:
+[(((0, 1),6), 3, 1)]
+PASO 6
+Estados candidatos para continuar:
+[(((0, 0),6), 2, 1), (((1, 0),4), 2, 1), (((0, 1),6), 3, 1), (((1, 1),4), 3, 0), (((0, 1),4), 2, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 1),4), 2, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 1),2), 1, 1), (((0, 1),4), 2, 1)]
+Nuevos descendientes generados:
+[(((1, 1),4), 3, 0)]
+PASO 7
+Estados candidatos para continuar:
+[(((1, 0),4), 2, 1), (((0, 1),6), 3, 1), (((1, 1),4), 3, 0), (((0, 0),6), 2, 1)]
+Mejor nodo de entre los candidatos:
+[(((0, 0),6), 2, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 0),4), 1, 1), (((0, 0),6), 2, 1)]
+Nuevos descendientes generados:
+[]
+PASO 8
+Estados candidatos para continuar:
+[(((0, 1),6), 3, 1), (((1, 1),4), 3, 0), (((1, 0),2), 3, 1), (((1, 0),6), 3, 1), (((1, 0),4), 2, 1)]
+Mejor nodo de entre los candidatos:
+[(((1, 0),4), 2, 1)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 0),4), 1, 1), (((1, 0),4), 2, 1)]
+Nuevos descendientes generados:
+[(((1, 0),2), 3, 1), (((1, 0),6), 3, 1)]
+PASO 9
+Estados candidatos para continuar:
+[(((0, 1),6), 3, 1), (((1, 1),4), 3, 0), (((1, 0),2), 3, 1), (((1, 0),6), 3, 1)]
+Mejor nodo de entre los candidatos:
+[(((1, 1),4), 3, 0)]
+Camino actual hasta el mejor nodo:
+[(((0, 0),2), 0, 1), (((0, 1),2), 1, 1), (((0, 1),4), 2, 1), (((1, 1),4), 3, 0)]
+Nuevos descendientes generados:
+[]
+\end{verbatim}
+}
+
+En este caso los elementos se expresan como (((X,Y),Z), G, H), donde X,Y y Z mantienen las definiciones anteriores, G simboliza el valor de la función {\em g} y H el valor de la función heurística empleada (Chebyshev en este caso).
+
+\section{Resultados}
+\subsection{Caracterización de las heurísticas empleadas}
+Como ya habíamos explicado en la anterior entrega, emplearemos las funciones de Chebyshev y la de resta de distancias para el papel de funciones heurísticas. Ahora calcularemos el error absoluto esperado con los datos recogidos de las ejecuciones del programa sobre estados aleatoriamente seleccionados que se pueden ver en la tabla 1. En ella, $h_c(s_i)$ simboliza el valor de la heurística de Chebyshev para cada uno de los estados, $h_{r}(s_i)$ el de la heurística de la resta de distancias, y los $h^*(s_i)$ el coste real de un camínimo de coste mínimo hasta el estado meta para los casos de giros de 90º y de 45º. Los valores de las heurísticas son los mismos independientemente de los giros empleados, así que no se muestran sus valores repetidos.
+
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c c c c c}
+\hline
+Estado & $h_c(s_i)$ & $h_{r}(s_i)$ & $h^*_{90}(s_i)$ & $h^*_{45}(s_i)$ \\ \hline
+3,1,2 & 6 & 4 & 13 & 10 \\
+4,6,0 & 1 & 0 & 5 & 4 \\
+0,3,4 & 5 & 1 & 16 & 8 \\
+0,2,0 & 5 & 0 & 19 & 10 \\
+4,4,0 & 3 & 2 & 10 & 6 \\
+5,6,6 & 1 & 1 & 3 & 5 \\
+5,1,2 & 6 & 6 & 9 & 9 \\
+2,6,2 & 3 & 2 & 6 & 6 \\
+4,3,6 & 4 & 3 & 10 & 11 \\
+3,0,0 & 7 & 5 & 17 & 15 \\
+1,1,4 & 6 & 2 & 20 & 14 \\
+2,0,6 & 7 & 4 & 19 & 16 \\
+5,3,2 & 4 & 4 & 7 & 7 \\
+2,4,2 & 3 & 0 & 11 & 4 \\
+0,6,0 & 5 & 4 & 13 & 14 \\
+1,3,4 & 4 & 0 & 15 & 7 \\ \hline
+Promedio & 4.375 & 2.375 & 12.0625 & 9.125 \\ \hline
+\end{tabular}
+\caption{Caracterización de las heurísticas empleadas.}
+\end{center}
+\end{table}
+
+
+\subsection{Comparación del rendimiento de los distintos métodos de búsqueda implementados}
+Para comparar el número de nodos generados y el factor de ramificación efectivo para cada uno de los dos métodos con sus correspondientes heurísticas, se ha rellenado la tabla 2 tras generar unos problemas aleatorios y agruparlos por su valor de profundidad en el grafo de exploración. El resultado puede verse reflejado en la tabla 2.
+
+\begin{table}[]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{} & \multicolumn{ 3}{c|}{Coste de búsqueda} & \multicolumn{ 3}{c|}{Factor de ramificación efectivo} \\ \hline
+d & Ciega & A*($h_c$) & A*($h_r$) & Ciega & A*($h_c$) & A*($h_r$) \\ \hline
+5 & 44.66 & 9.33 & 17.66 & 1.82 & 1.16 & 1.42 \\ \hline
+6 & 65.33 & 15 & 28 & 1.73 & 1.23 & 1.43 \\ \hline
+7 & 162 & 24.66 & 52.66 & 1.84 & 1.28 & 1.48 \\ \hline
+8 & 260 & 62 & 107 & 1.81 & 1.45 & 1.58 \\ \hline
+9 & 218.33 & 68 & 134 & 1.62 & 1.35 & 1.51 \\ \hline
+10 & 218 & 80 & 143 & 1.54 & 1.36 & 1.46 \\ \hline
+11 & 301 & 117 & 201 & 1.52 & 1.37 & 1.45 \\ \hline
+12 & 280 & 145 & 196 & 1.45 & 1.35 & 1.4 \\ \hline
+\end{tabular}
+\end{center}
+\caption{Tabla comparativa de rendimiento de los métodos de búsqueda.}
+\end{table}
+
+\section{Discusión}
+\subsection{Conclusiones derivadas del apartado 2.1}
+Según los datos del operador esperanza calculados en la última fila de la tabla 1, obtenemos los siguientes valores de error absoluto medio:
+
+\begin{itemize}
+\item $E(h^*_{90}(s) - h_c(s)) = 7.69$
+\item $E(h^*_{90}(s) - h_{r}(s)) = 9.69$
+\item $E(h^*_{45}(s) - h_c(s)) = 4.75$
+\item $E(h^*_{45}(s) - h_{r}(s)) = 6.75$
+\end{itemize}
+
+Como era de imaginar, la heurística de Chebyshev es, en ambos más casos, más cercana al coste real de la ruta. Esto es debido, como ya se demostró en la primera entrega, a que los valores de la heurística de la resta de distancias siempre son menores o iguales que los obtenidos por Chebyshev. Y, como ambas son heurísticas admisibles, ninguna puede sobreestimar al coste real. Por tanto, en todos los casos, $h_r \leq h_c \leq h^*$.
+
+\subsection{Origen de ventajas e inconvenientes de los métodos de búsqueda propuestos.}
+Aunque los algoritmos de A* llevan las de ganar por su guiado del proceso de búsqueda, sí que podría darse el caso de que ese guiado fuese alejando la solución más y más hasta el punto de que una búsqueda ciega como la de anchura pudiese encontrar antes la solución. Aunque bien es cierto que en ninguno de los casos probados, aleatorios o no, se ha dado tal escenario.
+
+De la tabla 2 descrita en el apartado 2.2, se puede concluir que, para una profundidad dada, el método A* con la heurística Chebyshev es el que más rápido converge hacia la solución, generando menos nodos y, por ende, teniendo un factor de ramificación más bajo. Por su parte, aunque la heurística de resta de distancias está muy lejos de ser óptima, sí que le ayuda a guiarse en una dirección general hacia la solución, por lo que obtiene mejores resultados que el método de búsqueda en anchura. Este último tiene el mayor factor de ramificación efectivo por tratarse de una búsqueda ciega en la que la solución se encuentra en lugar de ser buscada.
+
+\subsection{Variaciones del enunciado}
+\subsubsection{Casillas sin coste}
+Como habíamos aventurado en la anterior entrega, un mapa en el que puedan aparecer ceros podría confundir a las heurísticas que hemos ideado, que pasarían a ser no admisibles y, por tanto, a poder generar soluciones no óptimas. Para ver un ejemplo de esto hemos generado el siguiente mapa:
+
+\begin{verbatim}
+A 2 2 1 1 3 2 1 
+0 5 5 5 2 4 2 1 
+0 5 5 5 5 2 4 4 
+0 5 G 0 0 0 0 2 
+0 5 5 5 5 5 0 4 
+0 0 0 0 0 0 0 1
+\end{verbatim}
+
+Como se puede apreciar, hay una ristra de ceros que nos llevaría directamente del punto A al G con un par de giros con un coste total de 7. Sin embargo, la heurística de Chebyshev intenta acercarse lo máximo posible a la meta y no es capaz de detectar este camino, obteniendo uno que, aunque es más corto en longitud, tiene un mayor coste asociado:
+
+{\small [(((0, 0),3), 0, 3), (((0, 0),4), 1, 3), (((1, 0),4), 1, 2), (((1, 0),3), 2, 2), (((2, 1),3), 7, 1), (((3, 2),3), 8, 0)]}
+
+\subsubsection{Giros sin coste}
+Este caso es muy sencillo de probar, basta con cambiar la penalización del salto de 1 a 0 (hemos creado una variable en el código para contemplar este caso). Como habíamos afirmado en el caso anterior, nuestras heurísticas siguen siendo admisibles y no hay ninguna sorpresa desagradable. Como se puede apreciar en los siguientes ejemplos el primero llega a la solución con un coste 8 y el segundo llega a la misma posición con coste 6 por no ser penalizado al girar las dos veces:
+
+{\small [(((0, 0),4), 0, 3), (((1, 0),4), 3, 2), (((1, 0),3), 3, 2), (((2, 1),3), 5, 1), (((3, 2),3), 6, 0)]}
+
+{\small [(((0, 0),4), 0, 3), (((1, 0),4), 3, 2), (((1, 0),3), 4, 2), (((2, 1),3), 7, 1), (((3, 2),3), 8, 0)]}
+
+\subsection{Heurística que sobreestima}
+Con un fin educativo, hemos cambiado la definición de Chebyshev para que en lugar de realizar una diferencia de distancias en cada componente haga una suma, simulando que Abdel se equivocó al programar su heurística y creó una que sobreestimase. Al aplicar esta sobre el terreno de ejemplo que aparece el enunciado nos devuelve el siguiente camino como solución:
+
+{\small
+[(((0, 0),1), 0, 4), (((0, 0),2), 1, 4), (((0, 0),3), 2, 4), (((0, 0),4), 3, 4), (((1, 0),4), 6, 4), (((1, 0),3), 7, 4), (((2, 1),3), 9, 5), (((3, 2),3), 10, 6), (((3, 2),2), 11, 6), (((3, 3),2), 11, 7), (((3, 4),2), 16, 0)]
+}
+
+Aunque es una solución válida (acaba en la meta y no realiza movimientos ilegales), podemos observar como no es óptima, simplemente comparándola con una ejecución de Chebyshev que, al no sobreestimar en ningún momento, sí que nos devuelve uno de los mejores caminos posibles:
+
+{\small
+[(((0, 0),1), 0, 4), (((0, 0),2), 1, 4), (((0, 1),2), 3, 3), (((0, 2),2), 5, 3), (((0, 2),3), 6, 3), (((1, 3),3), 7, 2), (((2, 4),3), 10, 1), (((2, 4),4), 11, 1), (((3, 4),4), 15, 0)]
+}
+
+He aquí, pues, un ejemplo de heurística que sobreestima y como puede causar que A* devuelva una solución no óptima, cosa que nunca sucedería si Abdel se hubiese equivocado pero mantuviese la admisibilidad.
+
+\pagebreak
+
+\section{Apéndice}
+Se adjuntan las funciones más interesantes del código, aunque este puede consultarse en su integridad en los ficheros adjuntos.
+\subsection{Generador de sucesores}
+{\scriptsize
+\begin{verbatim}
+  def get_neighbours(self):
+    turn_cost = 1
+    turn_size = 1 if self.terrain.quarter_turns else 2
+    l = [Node(self.terrain, self.position, self.value+turn_cost, (self.facing-turn_size) % 8, self)]
+    l += [Node(self.terrain, self.position, self.value+turn_cost, (self.facing+turn_size) % 8, self)]
+
+    new_pos = None
+    if(self.facing == 0) and self.position[0] > 0: #top
+      new_pos = (self.position[0]-1, self.position[1])
+    elif (self.facing == 2) and self.position[1]+1 < self.terrain.size_y: #right
+      new_pos = (self.position[0], self.position[1]+1)
+    elif (self.facing == 4) and self.position[0]+1 < self.terrain.size_x: #bot
+      new_pos = (self.position[0]+1, self.position[1])
+    elif (self.facing == 6) and self.position[1] > 0: #left
+      new_pos = (self.position[0], self.position[1]-1)
+    elif (self.facing == 1) and self.position[0] > 0 and self.position[1]+1 < self.terrain.size_y: #topright
+      new_pos = (self.position[0]-1, self.position[1]+1)
+    elif (self.facing == 3) and self.position[0]+1 < self.terrain.size_x and self.position[1]+1 < self.terrain.size_y: #botright
+      new_pos = (self.position[0]+1, self.position[1]+1)
+    elif (self.facing == 5) and self.position[0]+1 < self.terrain.size_x and self.position[1] > 0: #botleft
+      new_pos = (self.position[0]+1, self.position[1]-1)
+    elif (self.facing == 7) and self.position[0] > 0 and self.position[1] > 0: #topleft
+      new_pos = (self.position[0]-1, self.position[1]-1)
+\end{verbatim}
+
+\subsection{Búsqueda en anchura}
+\begin{verbatim}
+  def search(self):
+    visited = []
+    q = [self.terrain.start]
+    ret = []
+    while q:
+      ret.append([n for n in q])
+      n = q.pop(0)
+      if n.is_goal(self.terrain.goal):
+        n.reconstruct_path()
+        return ret
+      q.extend(filter(lambda x: x not in visited and x not in q, n.get_neighbours()))
+      visited.append(n)
+    return ret
+\end{verbatim}
+
+\subsection{A*}
+\begin{verbatim}
+  def search(self):
+    ret = []
+    s = self.terrain.start
+    closedset = []
+    openset = [s]
+    g_score = {}
+    h_score = {}
+    f_score = {}
+
+    g_score[s] = 0
+    h_score[s] = self.heuristic(s)
+    f_score[s] = h_score[s]
+
+    while openset:
+      best = min([(f_score[x], x) for x in filter(lambda y: y in openset, f_score)])[1]
+      if best.is_goal(self.terrain.goal):
+        tmp = [self.format_nodes(openset, g_score, h_score)]
+        tmp.append(self.format_nodes([best], g_score, h_score));
+        tmp.append(self.format_nodes(best.reconstruct_path(), g_score, h_score))
+        tmp.append([]) # neighbours
+        ret.append(tmp)
+        return ret
+
+      openset.remove(best)
+      closedset.append(best)
+      new_neighbours = []
+      for n in best.get_neighbours():
+        if n in closedset: continue
+        tentative_g_score = g_score[best] + n.value - best.value
+        if n not in openset:
+          openset.append(n)
+          new_neighbours.append(n)
+          h_score[n] = self.heuristic(n)
+          g_score[n] = tentative_g_score
+          f_score[n] = g_score[n] + h_score[n]
+        elif tentative_g_score < g_score[n]:
+          n.prev = best
+          g_score[n] = tentative_g_score
+          f_score[n] = g_score[n] + h_score[n]
+      
+      tmp = [self.format_nodes(openset, g_score, h_score)]
+      tmp[0].extend(self.format_nodes([best], g_score, h_score)) # was removed
+      tmp.append((self.format_nodes([best], g_score, h_score)))
+      tmp.append(self.format_nodes(best.reconstruct_path(), g_score, h_score))
+      tmp.append(self.format_nodes(new_neighbours, g_score, h_score))
+      ret.append(tmp)
+    return ret
+\end{verbatim}
+}
+\end{document}
